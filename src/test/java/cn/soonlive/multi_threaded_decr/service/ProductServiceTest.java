@@ -95,7 +95,6 @@ public class ProductServiceTest {
             };
             callables.add(task);
         }
-        ;
 
         service.invokeAll(callables);
     }
@@ -103,6 +102,7 @@ public class ProductServiceTest {
 
     /**
      * Tests decrease available atomically by using redis CAS
+     *
      * @throws Exception
      */
     @Test
@@ -140,6 +140,7 @@ public class ProductServiceTest {
 
     /**
      * Tests decrease available atomically by using redis script
+     *
      * @throws Exception
      */
     @Test
@@ -178,6 +179,7 @@ public class ProductServiceTest {
     /**
      * Tests batch decrease available by using table lock
      * creates available of product randomly and tests decrease in multi-thread
+     *
      * @throws Exception
      */
     @Test

@@ -30,9 +30,9 @@ public class ProductRepositoryTest {
     ProductRepository productRepository;
 
     @Test
-    public void testFindOne(){
+    public void testFindOne() {
         Product product = productRepository.findOne("001");
 
-        LOG.info("there are {} product: {}" ,product.getAvailable(), product.getProductCode());
+        LOG.info("there are {} product: {}", product.getAvailable(), product.getProductCode());
     }
 }

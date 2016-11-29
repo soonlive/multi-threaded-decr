@@ -43,7 +43,6 @@ public class ProductService {
     TransactionTemplate transactionTemplate;
 
     /**
-     *
      * @param productCode
      * @param value
      * @return
@@ -65,7 +64,6 @@ public class ProductService {
 
 
     /**
-     *
      * @param productCode
      * @param value
      * @return
@@ -98,7 +96,6 @@ public class ProductService {
     }
 
     /**
-     *
      * @param productCode
      * @param value
      * @return
@@ -122,6 +119,7 @@ public class ProductService {
 
     /**
      * batch decrease available by locking table rows
+     *
      * @param productDatas {@link ProductData }
      * @throws InsufficientStockLevelException
      * @throws StockLevelUpdateException
@@ -162,7 +160,7 @@ public class ProductService {
             return retCode;
         });
 
-        if(result == -1){
+        if (result == -1) {
             throw new StockLevelUpdateException();
         }
 

@@ -11,8 +11,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @EnableRetry
 public class MultiThreadedDecrApplicationTests {
 
-	@Test
-	public void contextLoads() {
-	}
+    @Test
+    public void contextLoads() {
+    }
 
 }

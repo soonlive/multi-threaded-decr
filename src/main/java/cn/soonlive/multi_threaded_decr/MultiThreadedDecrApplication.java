@@ -8,7 +8,7 @@ import org.springframework.retry.annotation.EnableRetry;
 @EnableRetry
 public class MultiThreadedDecrApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MultiThreadedDecrApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(MultiThreadedDecrApplication.class, args);
+    }
 }
