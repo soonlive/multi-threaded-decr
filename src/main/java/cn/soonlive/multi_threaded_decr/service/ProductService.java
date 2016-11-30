@@ -137,7 +137,7 @@ public class ProductService {
         // -999: insufficient stock level
         int result = transactionTemplate.execute(status -> {
             int retCode = -1;
-            List<Product> beforeResults = this.getAvailables(productCodes);
+            List<Product> beforeResults = this.findProductForUpdate(productCodes);
 
             for (ProductData productData : productDatas) {
                 for (Product product : beforeResults) {
@@ -151,9 +151,9 @@ public class ProductService {
 
             String updateSql = "UPDATE products SET available = ((SELECT available FROM products WHERE product_code = :productCode) - :available) WHERE product_code = :productCode";
             SqlParameterSource[] params = SqlParameterSourceUtils.createBatch(productDatas.toArray());
-            int[] updateResults = namedParameterJdbcTemplate.batchUpdate(updateSql, params);
+            int[] updatedResults = namedParameterJdbcTemplate.batchUpdate(updateSql, params);
 
-            if (updateResults[0] == 1 && Arrays.stream(updateResults).distinct().count() == 1) {
+            if (updatedResults[0] == 1 && Arrays.stream(updatedResults).distinct().count() == 1) {
                 retCode = 1;
             }
 
@@ -169,7 +169,7 @@ public class ProductService {
         }
     }
 
-    List<Product> getAvailables(List<String> productCodes) {
+    List<Product> findProductForUpdate(List<String> productCodes) {
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue("productCodes", productCodes);
 
