@@ -4,7 +4,6 @@ import cn.soonlive.multi_threaded_decr.data.ProductData;
 import cn.soonlive.multi_threaded_decr.entity.Product;
 import cn.soonlive.multi_threaded_decr.exception.InsufficientStockLevelException;
 import cn.soonlive.multi_threaded_decr.repository.ProductRepository;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -40,14 +39,7 @@ public class ProductServiceTest {
     @SpyBean
     private ProductService productService;
 
-    Jedis jedis = new Jedis("localhost");
-
     private int nThreads = 10;
-
-    @Before
-    public void initAvailable() {
-        jedis.set("001", "100");
-    }
 
     @Test
     public void decreaseAvailable() throws Exception {
@@ -107,6 +99,9 @@ public class ProductServiceTest {
      */
     @Test
     public void decreaseAvailableByCAS() throws Exception {
+        Jedis jedis = new Jedis("localhost");
+        jedis.set("001", "100");
+
         String productCode = "001";
         ExecutorService service = Executors.newFixedThreadPool(nThreads);
 
@@ -145,6 +140,9 @@ public class ProductServiceTest {
      */
     @Test
     public void decreaseAvailableByScript() throws Exception {
+        Jedis jedis = new Jedis("localhost");
+        jedis.set("001", "100");
+
         String productCode = "001";
         ExecutorService service = Executors.newFixedThreadPool(nThreads);
 
