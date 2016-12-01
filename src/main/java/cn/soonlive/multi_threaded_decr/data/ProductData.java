@@ -6,6 +6,7 @@ package cn.soonlive.multi_threaded_decr.data;
 public class ProductData {
     String productCode;
     Integer available;
+    Integer version;
 
     public String getProductCode() {
         return productCode;
@@ -21,5 +22,13 @@ public class ProductData {
 
     public void setAvailable(Integer available) {
         this.available = available;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }

@@ -8,16 +8,17 @@ import cn.soonlive.multi_threaded_decr.repository.ProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DeadlockLoserDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Transaction;
 
 import javax.annotation.Resource;
@@ -118,14 +119,14 @@ public class ProductService {
     }
 
     /**
-     * batch decrease available by locking table rows
+     * batch decrease available by pessimistic lock
      *
      * @param productDatas {@link ProductData }
      * @throws InsufficientStockLevelException
      * @throws StockLevelUpdateException
      */
-    @Retryable(maxAttempts = 4, backoff = @Backoff(delay = 3000))
-    void batchDecreaseAvailableByLock(List<ProductData> productDatas) throws InsufficientStockLevelException, StockLevelUpdateException {
+    @Retryable(value = {DeadlockLoserDataAccessException.class, StockLevelUpdateException.class}, maxAttempts = 4, backoff = @Backoff(delay = 3000))
+    void batchDecreaseAvailableByPessimisticLock(List<ProductData> productDatas) throws InsufficientStockLevelException, StockLevelUpdateException {
 
         List<String> productCodes = productDatas.stream().map(ProductData::getProductCode).collect(Collectors.toList());
 
@@ -167,6 +168,34 @@ public class ProductService {
         if (result == -999) {
             throw new InsufficientStockLevelException();
         }
+    }
+
+
+    /**
+     * batch decrease available by optimistic lock
+     *
+     * @param productDatas {@link ProductData }
+     * @throws InsufficientStockLevelException
+     */
+    @Retryable(value = {ObjectOptimisticLockingFailureException.class}, maxAttempts = 10, backoff = @Backoff(delay = 500))
+    void batchDecreaseAvailableByOptimisticLock(List<ProductData> productDatas) throws InsufficientStockLevelException {
+        List<String> productCodes = productDatas.stream().map(ProductData::getProductCode).collect(Collectors.toList());
+        List<Product> products = productRepository.findByProductCodeIn(productCodes);
+        for (ProductData productData : productDatas) {
+            for (Product product : products) {
+                if (product.getProductCode().equals(productData.getProductCode())) {
+
+                    // throw exception when the stock level is insufficient
+                    // or decrease the available
+                    if (productData.getAvailable().compareTo(product.getAvailable()) > 0) {
+                        throw new InsufficientStockLevelException();
+                    } else {
+                        product.setAvailable(product.getAvailable() - productData.getAvailable());
+                    }
+                }
+            }
+        }
+        productRepository.save(products);
     }
 
     List<Product> findProductForUpdate(List<String> productCodes) {

@@ -2,7 +2,6 @@ package cn.soonlive.multi_threaded_decr.service;
 
 import cn.soonlive.multi_threaded_decr.data.ProductData;
 import cn.soonlive.multi_threaded_decr.entity.Product;
-import cn.soonlive.multi_threaded_decr.exception.InsufficientStockLevelException;
 import cn.soonlive.multi_threaded_decr.repository.ProductRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,8 +19,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
-
-import static org.junit.Assert.fail;
 
 /**
  * Created by Xin on 25/11/2016.
@@ -190,27 +187,29 @@ public class ProductServiceTest {
         for (int i = 0; i < 20; i++) {
             Callable<String> task = () -> {
                 Integer available = 0;
-                try {
-                    List<ProductData> productDatas = new ArrayList<>();
+                List<ProductData> productDatas = new ArrayList<>();
 
-                    for (int j = 0; j < 3; j++) {
-                        Integer randomInt = ThreadLocalRandom.current().nextInt(1, 10 + 1);
-                        ProductData productData = new ProductData();
+                for (int j = 0; j < 3; j++) {
+                    Integer randomInt = ThreadLocalRandom.current().nextInt(1, 10 + 1);
+                    ProductData productData = new ProductData();
 
-                        if (j % 3 == 0) {
-                            productData.setProductCode("003");
-                        } else if (j % 2 == 0) {
-                            productData.setProductCode("002");
-                        } else {
-                            productData.setProductCode("001");
-                        }
-
-                        productData.setAvailable(randomInt);
-                        productDatas.add(productData);
+                    if (j % 3 == 0) {
+                        productData.setProductCode("003");
+                    } else if (j % 2 == 0) {
+                        productData.setProductCode("002");
+                    } else {
+                        productData.setProductCode("001");
                     }
-                    productService.batchDecreaseAvailableByLock(productDatas);
-                } catch (final InsufficientStockLevelException e) {
-                    fail("out of stock");
+
+                    productData.setAvailable(randomInt);
+                    productDatas.add(productData);
+                }
+
+                try {
+//                    productService.batchDecreaseAvailableByPessimisticLock(productDatas);
+                    productService.batchDecreaseAvailableByOptimisticLock(productDatas);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
 
                 return String.valueOf(available);
